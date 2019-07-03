@@ -1,1 +1,0 @@
-load File.expand_path('../tasks/staging-branch.rake', __FILE__)
