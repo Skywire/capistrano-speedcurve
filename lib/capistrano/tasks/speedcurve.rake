@@ -9,23 +9,21 @@ namespace :speedcurve do
       if fetch(:speedcurve_api_key)
           uri = URI("https://api.speedcurve.com/v1/urls")
           request = Net::HTTP::Get.new(uri)
-          request.basic_auth(fetch(:speedcurve_api_key), "x")
+          request.basic_auth "#{fetch(:speedcurve_api_key)}", "x"
 
-          result = Net::HTTP.start(uri.hostname, uri.port) {|http|
+          result = Net::HTTP.start(uri.hostname, uri.port, :use_ssl => uri.scheme == 'https') {|http|
             http.request(request)
           }
 
-          #data = JSON.parse(result.body)
+          data = JSON.parse(result.body)
 
-puts uri.host
-puts uri.port
-puts uri.request_uri
-puts fetch(:speedcurve_api_key)
-          puts result.code
-
-          #data['data']['children'].each do |child|
-          #    puts child['data']['body']
-          #end
+          data['sites'].each do |child|
+            child['urls'].each do |child2|
+                result = Net::HTTP.get_response(URI(child2['url']))
+                puts child2['url']
+                puts result.code
+            end
+          end
         end
     end
   end
@@ -45,4 +43,4 @@ puts fetch(:speedcurve_api_key)
 end
 
 after "deploy:finished", "speedcurve:cachewarm"
-#after "speedcurve:cachewarm", "speedcurve:notify"
+after "speedcurve:cachewarm", "speedcurve:notify"
